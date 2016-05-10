@@ -21,7 +21,7 @@ public class AddressManager {
 		list.add(a);
 	}
 	
-	public void loadFromCsv(String path, String separator) throws AddressLoadException, FileNotFoundException, IOException{
+	public void loadFromCsv(String path, String separator) throws AddressLoadException, AddressLoadWrongException {
 		File file = new File(path);
 		try(FileReader fr = new FileReader(file); BufferedReader br = new BufferedReader(fr)) {
 			String line;
@@ -29,17 +29,27 @@ public class AddressManager {
 				String[] columns = line.split(separator);
 				
 				if(columns.length != 4) {
-					throw new AddressLoadException();
+					throw new AddressLoadWrongException();
 				}
 				
 				Address a = new Address(columns[0], columns[1], columns[2], columns[3]);
 				list.add(a);
-			}
+			} 
+		} 
+		catch(FileNotFoundException e) {
+			throw new AddressLoadException(e);
+		}
+		catch(IOException e1) {
+			throw new AddressLoadException(e1);
 		}
 	}
 	
-	public void exportToCsv(String path, String separator) throws AddressExportException, IOException {
+	public void exportToCsv(String path, String separator) throws AddressExportException, 
+			IOException, AddressExportFileAlreadyExistsException {
 		File file = new File(path);
+		if(file.exists()) {
+			throw new AddressExportFileAlreadyExistsException();
+		}
 		try(FileWriter fw = new FileWriter(file); PrintWriter pw = new PrintWriter(fw)) {
 			for (Address address : list) {
 				String line = address.getFirstname() + separator + 
